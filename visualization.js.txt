@@ -1,0 +1,190 @@
+var planes1=new Array();
+var planes2=new Array();
+var data=new Array();
+var site1;
+var site2;
+var d1; 
+var m1; 
+var s1;
+var d11; 
+var m11; 
+var s11
+var d2;
+var m2; 
+var s2;
+var d22;
+var m22; 
+var s22;
+var lat1;
+var lon1 ;
+var lat2 ;
+var lon2;
+
+/***  this code is for making multiple popup open ***/
+L.Map = L.Map.extend({
+	openPopup: function(popup) {
+		this._popup = popup;
+		return this.addLayer(popup).fire('popupopen', {
+			popup: this._popup
+        });
+	}
+});
+/***  this code is for making multiple popup open ***/
+
+var map = L.map('map').setView([37.8, -96.9], 4);
+mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	attribution: 'Map data &copy; ' + mapLink,
+	closePopupOnClick:false,
+	maxZoom: 18,
+	}).addTo(map);
+	
+	var markersLayer = new L.LayerGroup();	//layer contain searched elements
+	
+	map.addLayer(markersLayer);
+	
+d3.csv("data/test2.csv", function(data) {
+	for(var i=0; i<data.length; i++)
+	{
+		calclatlng(data[i]['site1'],data[i]['lat1(dd)'],data[i]['lat1(mm)'],data[i]['lat1(sec)'],data[i]['lon1(dd)'],data[i]['lon1(mm)'],data[i]['lon1(sec)'],data[i]['site2'],data[i]['lat2(dd)'],data[i]['lat2(mm)'],data[i]['lat2(sec)'],data[i]['lon2(dd)'],data[i]['lon2(mm)'],data[i]['lon2(sec)'], data[i]['market'],data[i]['region'],data[i]['cluster ID'],data[i]['licensebasis1'],data[i]['licensebasis2']);
+		
+		
+	}
+});
+
+
+
+
+var controlSearch = new L.Control.Search({
+		position:'topright',		
+		layer: markersLayer,
+		initial: false,
+		zoom: 12,
+		marker: false
+	});
+	map.addControl( controlSearch );
+
+
+function calclatlng(site1,d1,m1,s1,d11,m11,s11,site2,d2,m2,s2,d22,m22,s22,market,region,cluster,license1,license2){
+	
+	d1=parseFloat(d1)/1.000000; 
+	m1=parseFloat(m1)/60.000000; 
+	s1=parseFloat(s1)/3600.000000;
+	d11=parseFloat(d11)/1.000000; 
+	m11=parseFloat(m11)/60.000000; 
+	s11=parseFloat(s11)/3600.000000;
+	
+	d2=parseFloat(d2)/1.000000;
+	m2=parseFloat(m2)/60.000000; 
+	s2=parseFloat(s2)/3600.000000;
+	d22=parseFloat(d22)/1.000000;
+	m22=parseFloat(m22)/60.000000; 
+	s22=parseFloat(s22)/3600.000000;
+	
+	lat1 = parseFloat(d1+m1+s1).toFixed(6);
+	lon1 = "-"+parseFloat(d11+m11+s11).toFixed(6);
+	lat2 = parseFloat(d2+m2+s2).toFixed(6);
+	lon2 = "-"+parseFloat(d22+m22+s22).toFixed(6);
+	
+	planes1.push([site1,lat1,lon1]);
+	planes2.push([site2,lat2,lon2]);
+	addmarker(site1,lat1,lon1,site2,lat2,lon2,market,region,cluster,license1,license2);
+}
+
+//console.log(planes1);
+//console.log(planes2);
+
+	
+function addmarker(site1,lat1,lon1,site2,lat2,lon2,market,region,cluster,license1,license2)
+{
+	
+	var LeafIcon = L.Icon.extend({
+    options: {
+        shadowUrl: 'marker-shadow.png',
+        iconSize:     [25, 41],
+        shadowSize:   [41, 41],
+        iconAnchor:   [14, 40],
+        shadowAnchor: [12, 41],
+        popupAnchor:  [-3, -33]
+		}
+	});
+	
+	var greenIcon = new LeafIcon({iconUrl: 'green.png'});
+
+	L.icon = function (options) {
+		return new L.Icon(options);
+	};
+	
+	var content1='<a href="#" id="' + site1 + '" onclick="Detail(this);" style="text-align:center"><b>' + site1 + '</b></a><br><span style="display:none; text-align:left;padding:10px" id="span-' + site1 + '"><b>Market</b>= '+market+'<br><b>Region</b>= '+region+'<br><b>Cluster Id</b>='+cluster+'<br><b>license</b>='+license1+'</span>';
+	var content2='<a href="#" id="' + site2 + '" onclick="Detail(this);" style="text-align:center"><b>' + site2 + '</b></a><br><span style="display:none;text-align:left; padding:10px" id="span-' + site2 + '"><b>Market</b>= '+market+'<br><b>Region</b>= '+region+'<br><b>Cluster Id</b>='+cluster+'<br><b>license</b>='+license1+'</span>';
+	
+	var content3='<table><tr><td><b>Site1</b>:</td><td> ' + site1 + '</td></tr><tr><td><b>Site2</b>:</td><td> ' + site2 + '</td></tr><tr><td><b>Market</b>: </td><td>'+market+'</td></tr><tr><td><b>Region</b>: </td><td>'+region+'</td></tr><tr><td><b>Cluster Id</b>: </td><td>'+cluster+'</td></tr><tr><td><b>License</b>: </td><td>'+license1+'</td></tr></table>';
+
+
+	marker = L.marker( [lat1, lon1], {title: [site1,region,market,cluster,license1]} )
+	.bindTooltip(site1, {permanent: true,direction:"bottom" })
+		//.bindPopup( content1,{closeOnClick:false})
+    	.addTo( map );
+			markersLayer.addLayer(marker);
+//	marker.openPopup();
+	
+	
+	marker2 = L.marker( [lat2, lon2],  {title: [site2,region,market,cluster,license2], icon: greenIcon} )
+	.bindTooltip(site2, {permanent: true, direction:"bottom"})
+		//.bindPopup( content2,{closeOnClick:false} )
+		.addTo( map );
+		markersLayer.addLayer(marker2);
+	//marker.openPopup();
+	
+	
+	
+	var pointA = new L.LatLng(lat1, lon1);
+	var pointB = new L.LatLng(lat2, lon2);
+	var pointList = [pointA, pointB];
+	
+	var polyline = new L.Polyline(pointList, {
+    color: 'red',
+    weight: 3,
+    opacity: 0.5,
+    smoothFactor: 1
+	});
+	
+	polyline.addTo(map);
+	
+	polyline.on('click', function(e) {
+    var layer = e.target;
+	var CenterPoint=polyline.getBounds().getCenter();
+	var popup = L.popup()
+    .setLatLng(CenterPoint)
+    .setContent(content3,{closeOnClick:false})
+    .openOn(map);
+	});
+	
+	marker.on('click', function(e) {
+    var layer = e.target;
+	var CenterPoint=polyline.getBounds().getCenter();
+	var popup = L.popup()
+    .setLatLng(CenterPoint)
+    .setContent(content3,{closeOnClick:false})
+    .openOn(map);
+	});
+	
+	marker2.on('click', function(e) {
+    var layer = e.target;
+	var CenterPoint=polyline.getBounds().getCenter();
+	var popup = L.popup()
+    .setLatLng(CenterPoint)
+    .setContent(content3,{closeOnClick:false})
+    .openOn(map);
+	});
+	
+}
+
+
+
+
+function Detail(el)
+{
+	var siteid=$(el).attr("id");
+	$("#span-"+siteid).css("display","block");
+}
